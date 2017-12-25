@@ -1,5 +1,4 @@
 # *Tricalysia* (Tinkerpop, Neo4J, Jena...)
-========
 
 A set of (testing) interfaces for reading and writing triples in a store.
 
