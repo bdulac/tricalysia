@@ -18,36 +18,6 @@ import junit.framework.TestCase;
 
 public class JsoupMicrodataExtractorTest extends TestCase {
 	
-	/*
-	public void testLoadHtml2() throws Exception {
-		Driver driver = 
-				 GraphDatabase.driver(
-						 "bolt://localhost:7687", 
-						 AuthTokens.basic("neo4j", "neo4j")
-				);
-		Neo4JElementIdProvider<?> vertexProvider = new Neo4JNativeElementIdProvider();
-		Neo4JElementIdProvider<?> edgeProvider = new Neo4JNativeElementIdProvider();
-		Graph graph = null;
-		try {
-			graph = new Neo4JGraph(driver, vertexProvider, edgeProvider);
-			graph.features().vertex().supportsNumericIds();
-			graph.features().edge().supportsCustomIds();
-			Tricalysia tri = new GremlinTricalysia(graph);
-			tri.clear();
-			// FIXME LES SUJETS SONT PAS BONS !!!
-			// (entités encapsulées ignorées, ex: le spécimen se retrouve avec une relation "datePublished")
-			tri.negociate(
-					"https://science.mnhn.fr/institution/mnhn/collection/ed/item/ed4815"
-					
-			);
-			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.vertices()) + " vertices");
-			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.edges()) + " edges");
-		} finally {
-			graph.close();
-		}
-	}
-	*/
-	
 	public void testLoadHtml() throws Exception {
 		Driver driver = 
 				 GraphDatabase.driver(
