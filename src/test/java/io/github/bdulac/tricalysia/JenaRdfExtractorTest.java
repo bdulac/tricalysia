@@ -16,7 +16,7 @@ import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdPro
 import io.github.bdulac.tricalysia.gremlin.GremlinTricalysia;
 import junit.framework.TestCase;
 
-public class JenaTriplesExtractorTest extends TestCase {
+public class JenaRdfExtractorTest extends TestCase {
 	
 	public void testLoadRdf() throws Exception {
 		Driver driver = 
@@ -32,9 +32,8 @@ public class JenaTriplesExtractorTest extends TestCase {
 			graph.features().vertex().supportsNumericIds();
 			graph.features().edge().supportsCustomIds();
 			Tricalysia tri = new GremlinTricalysia(graph);
-			tri.clear();
-			tri.getUrlExtractor().extract(
-					tri, 
+			// tri.clear();
+			tri.negociate(
 					"https://science.mnhn.fr/institution/mnhn/collection/ed/item/ed4815.rdf",
 					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j16268.rdf",
 					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03230.rdf", 
@@ -54,6 +53,5 @@ public class JenaTriplesExtractorTest extends TestCase {
 		} finally {
 			graph.close();
 		}
-		
 	}
 }

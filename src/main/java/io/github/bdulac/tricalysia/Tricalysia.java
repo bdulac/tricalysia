@@ -7,7 +7,14 @@ import java.util.Map;
  */
 public interface Tricalysia {
 	
-	TriplesExtractor getUrlExtractor();
+	/**
+	 * Loads triples from a set of URLs and register these into a store.
+	 * @param store
+	 * The store to load the triple into.
+	 * @param urls
+	 * The URLs to load the triples from.
+	 */
+	public void negociate(String... urls);
 
 	<S, P, O> void write(S subject, P property, O object);
 

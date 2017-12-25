@@ -33,32 +33,61 @@ public class GremlinTricalysia extends AbstractTricalysia {
 	@Override
 	public <S,P,O> void write(S subject, P property, O object) {
 		Transaction tx = graph.tx();
+		if(subject == null) {
+			logger.warning(
+					"Subject can not be empty [triple=" 
+					+ subject + ";" 
+					+ property + ";"
+					+ object + "]" 
+			);
+			return;
+		}
+		if(property == null) {
+			logger.warning(
+					"Property can not be empty [triple=" 
+					+ subject + ";" 
+					+ property + ";"
+					+ object + "]" 
+			);
+			return;
+		}
+		if(object == null) {
+			logger.warning(
+					"Object can not be empty [triple=" 
+					+ subject + ";" 
+					+ property + ";"
+					+ object + "]" 
+			);
+			return;
+		}
 		try {
 			Vertex subj = null;
-			GraphTraversal<Vertex, Vertex> s= graph.traversal().V().has(T.label, subject);
-			// Iterator<Vertex> s = graph.vertices(subject.hashCode());
+			GraphTraversal<Vertex, Vertex> s = 
+					graph.traversal().V().has(T.label, subject.toString());
 			if(s.hasNext()) {
 				subj = s.next();
 			}
 			if(subj == null) {
-				subj = graph.addVertex(T.label, subject);
-				/*
-				Object o = subj.id();
-				String l = subj.label();
-				boolean ok = o.equals(subject.hashCode());
-				boolean ok2 = l.equals(subject);
-				*/
+				subj = graph.addVertex(T.label, subject.toString());
 			}
 			Vertex obj = null;
-			// Iterator<Vertex> o = graph.vertices(object.hashCode());
-			GraphTraversal<Vertex, Vertex> o = graph.traversal().V().has(T.label, object);
+			GraphTraversal<Vertex, Vertex> o = 
+					graph.traversal().V().has(T.label, object.toString());
 			if(o.hasNext()) {
 				obj = o.next();
 			}
 			if(obj == null) {
-				obj = graph.addVertex(T.label, object);
+				obj = graph.addVertex(T.label, object.toString());
 			}
-			graph.edges(subj.addEdge(property.toString(), obj));
+			Edge e = null;
+			Iterator<Edge> edges = subj.edges(Direction.OUT, property.toString());
+			if(edges.hasNext()) {
+				e = edges.next();
+			}
+			if(e == null) {
+				e = subj.addEdge(property.toString(), obj);
+				graph.edges(e);
+			}
 			tx.commit();
 		} catch(Exception e) {
 			tx.rollback();
@@ -66,9 +95,6 @@ public class GremlinTricalysia extends AbstractTricalysia {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see io.github.bdulac.tricalysia.Tricalysia#read(S)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <S, P, O> Map<P, O> read(S subject) {
@@ -96,36 +122,7 @@ public class GremlinTricalysia extends AbstractTricalysia {
 		}
 		return result;
 	}
-	
-	/*
-	protected void loadFromUrl(String url) 
-			throws IOException {
-		InputStream in = null;
-		try {
-			URL u = new URL(url);
-			in = u.openStream();
-			Model m = ModelFactory.createDefaultModel();
-			RDFReader r = m.getReader("RDF/XML");
-			r.setProperty("iri-rules", "strict");
-			r.setProperty("error-mode", "strict");
-			r.read(m, in, url);
-			StmtIterator iter = m.listStatements();
-			while(iter.hasNext()) {
-				Statement st = iter.next();
-				Resource subject = st.getSubject();
-				Property predicate = st.getPredicate();
-				RDFNode object = st.getObject();
-				write(subject.toString(), predicate.toString(), object.toString());
-			}
-		} finally {
-			in.close();
-		}
-	}
-	*/
 
-	/* (non-Javadoc)
-	 * @see io.github.bdulac.tricalysia.Tricalysia#clear()
-	 */
 	@Override
 	public void clear() {
 		Transaction tx = graph.tx();
