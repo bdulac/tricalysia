@@ -1,6 +1,11 @@
 # *Tricalysia* (Tinkerpop, Neo4J, Jena...)
 
+<<<<<<< HEAD
 A set of (testing) interfaces for reading and writing triples in a store.
+=======
+
+A set of (testing) interfaces for reading and writing triples from a store.
+>>>>>>> 97d3367... Update README.md
 
 The project initialization includes the use of [Apache Tinkerpop](tinkerpop.apache.org/) for reading and writing the triples from a generic store. A basic RDF extraction from URLs using [Apache Jena](https://jena.apache.org) is implemented.
 
