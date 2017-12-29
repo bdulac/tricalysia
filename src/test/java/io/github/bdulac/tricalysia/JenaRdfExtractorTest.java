@@ -18,7 +18,7 @@ import junit.framework.TestCase;
 
 public class JenaRdfExtractorTest extends TestCase {
 	
-	public void testLoadRdf() throws Exception {
+	public void testLoadRdfXml() throws Exception {
 		Driver driver = 
 				 GraphDatabase.driver(
 						 "bolt://localhost:7687", 
@@ -32,22 +32,79 @@ public class JenaRdfExtractorTest extends TestCase {
 			graph.features().vertex().supportsNumericIds();
 			graph.features().edge().supportsCustomIds();
 			Tricalysia tri = new GremlinTricalysia(graph);
-			// tri.clear();
+			tri.clear();
 			tri.negociate(
-					"https://science.mnhn.fr/institution/mnhn/collection/ed/item/ed4815.rdf",
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j16268.rdf",
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03230.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j04906.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03231.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03234.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03235.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05178.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05175.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05177.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05173.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05176.rdf", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03236.rdf"
+					"http://data.bnf.fr/12000651/jean-baptiste_de_monet_de_lamarck/rdf.xml"
 			);
+			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.vertices()) + " vertices");
+			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.edges()) + " edges");
+		} finally {
+			graph.close();
+		}
+	}
+	
+	public void testLoadRdfTurle() throws Exception {
+		Driver driver = 
+				 GraphDatabase.driver(
+						 "bolt://localhost:7687", 
+						 AuthTokens.basic("neo4j", "neo4j")
+				);
+		Neo4JElementIdProvider<?> vertexProvider = new Neo4JNativeElementIdProvider();
+		Neo4JElementIdProvider<?> edgeProvider = new Neo4JNativeElementIdProvider();
+		Graph graph = null;
+		try {
+			graph = new Neo4JGraph(driver, vertexProvider, edgeProvider);
+			graph.features().vertex().supportsNumericIds();
+			graph.features().edge().supportsCustomIds();
+			Tricalysia tri = new GremlinTricalysia(graph);
+			tri.clear();
+			tri.negociate("http://purl.org/dc/terms/modified");
+			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.vertices()) + " vertices");
+			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.edges()) + " edges");
+		} finally {
+			graph.close();
+		}
+	}
+	
+	public void testLoadRdfN3() throws Exception {
+		Driver driver = 
+				 GraphDatabase.driver(
+						 "bolt://localhost:7687", 
+						 AuthTokens.basic("neo4j", "neo4j")
+				);
+		Neo4JElementIdProvider<?> vertexProvider = new Neo4JNativeElementIdProvider();
+		Neo4JElementIdProvider<?> edgeProvider = new Neo4JNativeElementIdProvider();
+		Graph graph = null;
+		try {
+			graph = new Neo4JGraph(driver, vertexProvider, edgeProvider);
+			graph.features().vertex().supportsNumericIds();
+			graph.features().edge().supportsCustomIds();
+			Tricalysia tri = new GremlinTricalysia(graph);
+			tri.clear();
+			tri.negociate("http://wikidata.dbpedia.org/data/Q82122.n3");
+			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.vertices()) + " vertices");
+			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.edges()) + " edges");
+		} finally {
+			graph.close();
+		}
+	}
+	
+	public void testLoadRdfNt() throws Exception {
+		Driver driver = 
+				 GraphDatabase.driver(
+						 "bolt://localhost:7687", 
+						 AuthTokens.basic("neo4j", "neo4j")
+				);
+		Neo4JElementIdProvider<?> vertexProvider = new Neo4JNativeElementIdProvider();
+		Neo4JElementIdProvider<?> edgeProvider = new Neo4JNativeElementIdProvider();
+		Graph graph = null;
+		try {
+			graph = new Neo4JGraph(driver, vertexProvider, edgeProvider);
+			graph.features().vertex().supportsNumericIds();
+			graph.features().edge().supportsCustomIds();
+			Tricalysia tri = new GremlinTricalysia(graph);
+			tri.clear();
+			tri.negociate("http://data.bnf.fr/10306982/clement_dulac/rdf.n3");
 			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.vertices()) + " vertices");
 			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.edges()) + " edges");
 		} finally {
