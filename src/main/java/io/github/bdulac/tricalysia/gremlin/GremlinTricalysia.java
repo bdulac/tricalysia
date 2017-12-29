@@ -63,29 +63,30 @@ public class GremlinTricalysia extends AbstractTricalysia {
 		try {
 			Vertex subj = null;
 			GraphTraversal<Vertex, Vertex> s = 
-					graph.traversal().V().has(T.label, subject.toString());
+					graph.traversal().V().has(T.label, toSubjectString(subject));
 			if(s.hasNext()) {
 				subj = s.next();
 			}
 			if(subj == null) {
-				subj = graph.addVertex(T.label, subject.toString());
+				subj = graph.addVertex(T.label, toSubjectString(subject));
 			}
 			Vertex obj = null;
 			GraphTraversal<Vertex, Vertex> o = 
-					graph.traversal().V().has(T.label, object.toString());
+					graph.traversal().V().has(T.label, toObjectString(object));
 			if(o.hasNext()) {
 				obj = o.next();
 			}
 			if(obj == null) {
-				obj = graph.addVertex(T.label, object.toString());
+				obj = graph.addVertex(T.label, toObjectString(object));
 			}
 			Edge e = null;
-			Iterator<Edge> edges = subj.edges(Direction.OUT, property.toString());
+			Iterator<Edge> edges = 
+					subj.edges(Direction.OUT, toPropertyString(property));
 			if(edges.hasNext()) {
 				e = edges.next();
 			}
 			if(e == null) {
-				e = subj.addEdge(property.toString(), obj);
+				e = subj.addEdge(toPropertyString(property), obj);
 				graph.edges(e);
 			}
 			tx.commit();
@@ -95,6 +96,25 @@ public class GremlinTricalysia extends AbstractTricalysia {
 		}
 	}
 	
+	private <S> String toSubjectString(S subject) {
+		return subject.toString();
+	}
+	
+	private <P> String toPropertyString(P property) {
+		String prop = property.toString();
+		if(prop.startsWith("http://www.w3.org")) {
+			return prop.substring(prop.lastIndexOf('/'));
+		}
+		else if(prop.contains("/dc/terms/")) {
+			return prop.substring(prop.indexOf("/dc/"));
+		}
+		return prop;
+	}
+	
+	private <O> String toObjectString(O object) {
+		return object.toString();
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <S, P, O> Map<P, O> read(S subject) {
