@@ -1,9 +1,11 @@
 package io.github.bdulac.tricalysia;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.jsoup.Jsoup;
@@ -33,22 +35,39 @@ public class JsoupMicrodataExtractor implements TriplesExtractor {
 		Elements htmlDocs = doc.select("html");
 		for(Element htmlDoc : htmlDocs) {
 			Element root = htmlDoc;
-			processUrl(root, store, url, result);
+			processDocument(root, store, url, result);
 		}
-		/*
-		Elements links = doc.select("href");
-		for(Element link : links) {
-				fillResultFromUriString(
-						link.toString(), 
-						url, 
-						result
-				);
+		Elements links = doc.getElementsByAttribute("href");
+		for(Element linkEl : links) {
+				String href = linkEl.attr("href");
+				String rel = linkEl.attr("rel");
+				if(
+						(href != null) 
+						&& (href.trim().length() > 0)
+						&& (!"stylesheet".equalsIgnoreCase(rel))
+						&& (!"apple-touch-icon".equalsIgnoreCase(rel))
+						&& (!"shortcut-icon".equalsIgnoreCase(rel))
+						&& (!"alternate".equalsIgnoreCase(rel))
+						&& (!"import".equalsIgnoreCase(rel))
+						&& (!"canonical".equalsIgnoreCase(rel))
+				) {
+					
+					URL link = null;
+					try {
+						link = URLResolver.resolveRelativeURL(href,url);
+						if(link.equals(url)) {
+							continue;
+						}
+						result.add(link);
+					} catch(MalformedURLException e) {
+						Logger.getAnonymousLogger().warning(e.getMessage());
+					}
+				}
 		}
-		*/
 		return result;
 	}
-	
-	private void processUrl(
+
+	private void processDocument(
 			Element root, 
 			Tricalysia store, 
 			URL url, 

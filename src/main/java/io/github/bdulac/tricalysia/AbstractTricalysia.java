@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public abstract class AbstractTricalysia implements Tricalysia {
@@ -16,6 +18,8 @@ public abstract class AbstractTricalysia implements Tricalysia {
 			Logger.getLogger(AbstractTricalysia.class.getName());
 	
 	protected Map<String, TriplesExtractor> urlExtractors;
+	
+	private Set<URL> negociated;
 	
 	public AbstractTricalysia() {
 		try {
@@ -34,6 +38,7 @@ public abstract class AbstractTricalysia implements Tricalysia {
 				logger.severe(msg);
 				throw new IllegalStateException(msg);
 			}
+			negociated = new HashSet<URL>();
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
@@ -71,6 +76,9 @@ public abstract class AbstractTricalysia implements Tricalysia {
 	
 	protected void negociate(String url) throws IOException {
 		URL u = new URL(url);
+		if(isNegociated(u)) {
+			return;
+		}
 		HttpURLConnection connection = null;
 		try {
 			connection = (HttpURLConnection)u.openConnection();
@@ -87,16 +95,31 @@ public abstract class AbstractTricalysia implements Tricalysia {
 			TriplesExtractor extractor = getRemoteTriplesExtractor(mimeType);
 			if(extractor != null) {
 				List<URL> result = extractor.extract(this, u);
+				negociated(u);
+				for(URL link : result) {
+					negociate(link.toString());
+				}
 				logger.info(result.toString());
 			}
 			else {
-				logger.warning("Unsupported content type: " + contentType);
+				logger.warning(
+						"Unsupported content type: " + contentType 
+						+ " (URL=" + u + ")"
+				);
 			}
 		} finally {
 			connection.getInputStream().close();
 		}
 	}
 	
+	private void negociated(URL u) {
+		negociated.add(u);
+	}
+
+	private boolean isNegociated(URL u) {
+		return negociated.contains(u);
+	}
+
 	/**
 	 * Returns an extractor of remote triples associate with a specific mime type.
 	 * @param mimeType
