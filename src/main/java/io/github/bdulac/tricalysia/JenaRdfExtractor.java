@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -28,6 +30,9 @@ public class JenaRdfExtractor implements TriplesExtractor {
 	public List<String> getSupportedMimeTypes() {
 		List<String> result = new ArrayList<String>();
 		result.add("application/rdf+xml");
+		result.add("text/turtle");
+		result.add("text/n3");
+		result.add("text/plain");
 		return result;
 	}
 
@@ -40,12 +45,30 @@ public class JenaRdfExtractor implements TriplesExtractor {
 		if(url == null)return result;
 		InputStream in = null;
 		try {
-			in = url.openStream();
+			URLConnection ct = url.openConnection();
+			String contentType = ct.getContentType();
+			if(contentType.contains(";")) {
+				contentType = 
+						contentType.substring(0, contentType.indexOf(";"));
+			}
+			in = ct.getInputStream();
 			Model m = ModelFactory.createDefaultModel();
-			RDFReader r = m.getReader("RDF/XML");
+			RDFReader r = null;
+			if("application/rdf+xml".equals(contentType)) {
+				r = m.getReader("RDF/XML");
+			}
+			else if("text/turtle".equals(contentType)) {
+				r = m.getReader("Turtle");
+			}
+			else if("text/n3".equals(contentType)) {
+				r = m.getReader("N3");
+			}
+			else if("text/plain".equals(contentType)) {
+				r = m.getReader("NT");
+			}			
 			r.setProperty("iri-rules", "strict");
 			r.setProperty("error-mode", "strict");
-			r.read(m, in, url.toString());
+			r.read(m, in, url.toExternalForm());
 			StmtIterator iter = m.listStatements();
 			while(iter.hasNext()) {
 				Statement st = iter.next();
@@ -70,20 +93,20 @@ public class JenaRdfExtractor implements TriplesExtractor {
 	private void fetchRelatedURLFromUriString(
 			String str, URL refUrl, List<URL> result
 	) {
-		if(
-				(str != null) 
-				&& (!str.equals(refUrl.toString()))
-				&& (str.startsWith("http://"))
-		) {
-			try {
-				URL u = new URL(str);
-				if(!result.contains(u)) {
+		try {
+			// Only absolute URLs are considered
+			if(str.startsWith("http")) {
+				URL u = URLResolver.resolveRelativeURL(str, refUrl);
+				if((!result.contains(u)) && (!u.equals(refUrl))) {
 					result.add(u);
 				}
-			} catch (MalformedURLException e) {
-				return;
+				else return;
 			}
+		} catch (MalformedURLException e) {
+			Logger.getAnonymousLogger().warning(
+					e.getMessage() + " (URL=" + str + ")"
+			);
+			return;
 		}
-		else return;
 	}
 }
