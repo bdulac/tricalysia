@@ -9,6 +9,12 @@ import java.util.List;
  */
 public interface TriplesExtractor {
 	
+	/**
+	 * Lists the 
+	 * <a href="http://www.iana.org/assignments/media-types/media-types.xhtml">
+	 * MIME types</a> supported by the extractor. 
+	 * @return List of the supported media types.
+	 */
 	public List<String> getSupportedMimeTypes();
 	
 	/**
