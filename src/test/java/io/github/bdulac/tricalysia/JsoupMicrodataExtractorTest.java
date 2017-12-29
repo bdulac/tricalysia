@@ -34,19 +34,6 @@ public class JsoupMicrodataExtractorTest extends TestCase {
 			Tricalysia tri = new GremlinTricalysia(graph);
 			tri.clear();
 			tri.negociate(
-					/*"https://science.mnhn.fr/institution/mnhn/collection/ed/item/ed4815",
-					"https://science.mnhn.fr/institution/mnhn/collection/hp/item/37.47.10000", 	
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j16268",
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03230", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j04906", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03231", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03234", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03235", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05178", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05175", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05177", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05173", 
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/r05176", */
 					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03236"
 			);
 			Logger.getAnonymousLogger().info("" + IteratorUtils.count(graph.vertices()) + " vertices");
