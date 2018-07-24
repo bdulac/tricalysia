@@ -23,6 +23,9 @@ import org.apache.jena.rdf.model.StmtIterator;
  */
 public class JenaRdfExtractor implements TriplesExtractor {
 	
+	private static final Logger logger = 
+			Logger.getLogger(JenaRdfExtractor.class.getName());
+	
 	public JenaRdfExtractor() {
 	}
 	
@@ -30,8 +33,10 @@ public class JenaRdfExtractor implements TriplesExtractor {
 	public List<String> getSupportedMimeTypes() {
 		List<String> result = new ArrayList<String>();
 		result.add("application/rdf+xml");
+		result.add("application/xml");
 		result.add("text/turtle");
 		result.add("text/n3");
+		result.add("text/rdf+n3");
 		result.add("text/plain");
 		return result;
 	}
@@ -46,7 +51,14 @@ public class JenaRdfExtractor implements TriplesExtractor {
 		InputStream in = null;
 		try {
 			URLConnection ct = url.openConnection();
+			if(ct == null) {
+				logger.severe("Connection to URL " + url + " failed");
+				return result;
+			}
 			String contentType = ct.getContentType();
+			if(contentType == null) {
+				contentType = "application/rdf+xml";
+			}
 			if(contentType.contains(";")) {
 				contentType = 
 						contentType.substring(0, contentType.indexOf(";"));
@@ -57,10 +69,16 @@ public class JenaRdfExtractor implements TriplesExtractor {
 			if("application/rdf+xml".equals(contentType)) {
 				r = m.getReader("RDF/XML");
 			}
+			else if("application/xml".equals(contentType)) {
+				r = m.getReader("RDF/XML");
+			}
 			else if("text/turtle".equals(contentType)) {
 				r = m.getReader("Turtle");
 			}
 			else if("text/n3".equals(contentType)) {
+				r = m.getReader("N3");
+			}
+			else if("text/rdf+n3".equals(contentType)) {
 				r = m.getReader("N3");
 			}
 			else if("text/plain".equals(contentType)) {
@@ -73,19 +91,36 @@ public class JenaRdfExtractor implements TriplesExtractor {
 			while(iter.hasNext()) {
 				Statement st = iter.next();
 				Resource subject = st.getSubject();
-				fetchRelatedURLFromUriString(subject.getURI(), url, result);
+				String s = subject.getURI();
+				if(s == null) {
+					s = subject.toString();
+				}
+				fetchRelatedURLFromUriString(s, url, result);
 				Property predicate = st.getPredicate();
-				fetchRelatedURLFromUriString(predicate.getURI(), url, result);
+				String p = predicate.getURI();
+				if(p == null) {
+					p = predicate.toString();
+				}
+				fetchRelatedURLFromUriString(p, url, result);
 				RDFNode object = st.getObject();
 				fetchRelatedURLFromUriString(object.toString(), url, result);
 				store.write(
-						subject.toString(), 
-						predicate.toString(), 
+						s, 
+						p, 
 						object.toString()
 				);
 			}
+		} catch(IOException e) {
+			e.printStackTrace();
+			
+			logger.warning(
+					"An error occurred while loading the content from URL " 
+					+ url + ":" + e.getMessage()
+			);
 		} finally {
-			in.close();
+			if(in != null) {
+				in.close();
+			}
 		}
 		return result;
 	}
@@ -94,7 +129,7 @@ public class JenaRdfExtractor implements TriplesExtractor {
 			String str, URL refUrl, List<URL> result
 	) {
 		try {
-			// Only absolute URLs are considered
+			// Only absolute URLs are considerœed
 			if(str.startsWith("http")) {
 				URL u = URLResolver.resolveRelativeURL(str, refUrl);
 				if((!result.contains(u)) && (!u.equals(refUrl))) {

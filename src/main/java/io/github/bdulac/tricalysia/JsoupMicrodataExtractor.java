@@ -76,16 +76,19 @@ public class JsoupMicrodataExtractor implements TriplesExtractor {
 		List<Triple<String, String, String>> triples = 
 				new ArrayList<Triple<String, String, String>>();
 		if(url != null) {
-			// currentItemId = getStringId(root);
 			fetchTriplesFromDom(root, triples, false);
 
 		}
 		for(Triple<String, String, String> triple : triples) {
-			store.write(
-					triple.getLeft(), 
-					triple.getMiddle(), 
-					triple.getRight()
-			);
+			try {
+				store.write(
+						triple.getLeft(), 
+						triple.getMiddle(), 
+						triple.getRight()
+				);
+			} catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
 			/*
 			fillResultFromUriString(
 					triple.getLeft(), 
