@@ -22,7 +22,7 @@ public class GremlinTricalysiaTest extends TestCase {
 		Map<Object, List<Object>> result = tri.read("(`aged' pronounced as one syllable); \\\"mature well-aged cheeses\\\")@en-US`{vp}");
 		Assert.assertEquals(1, result.size());
 		Assert.assertEquals("my property`", result.keySet().iterator().next());
-		Assert.assertEquals("my object'", result.values().iterator().next());
+		Assert.assertEquals("my object'", result.values().iterator().next().iterator().next());
 		Assert.assertTrue(tri.exists("(`aged' pronounced as one syllable); \\\"mature well-aged cheeses\\\")@en-US`{vp}"));
 		Assert.assertTrue(tri.exists("my property`"));
 		Assert.assertTrue(tri.exists("my object'"));

@@ -43,21 +43,18 @@ public class GremlinTricalysia extends AbstractTricalysia {
 	@Override
 	protected <S> String toSubjectString(S subject) {
 		String res = super.toObjectString(subject);
-		res = res.replace("`", "``");
 		return res;
 	}
 	
 	@Override
 	protected <P> String toPropertyString(P property) {
 		String prop = super.toPropertyString(property);
-		prop = prop.replace("`", "``");
 		return prop;
 	}
 	
 	@Override
 	protected <O> String toObjectString(O object) {
 		String res = super.toObjectString(object);
-		res = res.replace("`", "``");
 		return res;
 	}
 	
