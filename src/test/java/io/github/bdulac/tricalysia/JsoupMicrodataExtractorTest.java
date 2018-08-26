@@ -14,7 +14,7 @@ public class JsoupMicrodataExtractorTest extends TestCase {
 		try {
 			tri.clear();
 			tri.negociate(
-					"https://science.mnhn.fr/institution/mnhn/collection/f/item/j03236"
+					"https://www.wikipedia.org"
 			);
 			Logger.getAnonymousLogger().info("" + IteratorUtils.count(tri.getGraph().vertices()) + " vertices");
 			Logger.getAnonymousLogger().info("" + IteratorUtils.count(tri.getGraph().edges()) + " edges");
