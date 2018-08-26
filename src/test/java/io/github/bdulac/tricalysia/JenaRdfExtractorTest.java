@@ -1,5 +1,6 @@
 package io.github.bdulac.tricalysia;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -12,7 +13,7 @@ import junit.framework.TestCase;
 
 public class JenaRdfExtractorTest extends TestCase {
 	
-	public void testLoadRdfXml() throws Exception {
+	public void testLoadRdfXml() throws IOException {
 		Tricalysia tri = 
 				TricalysiaTestUtils.setupTestStore(SparkTricalysia.class);
 		tri.clear();
@@ -42,7 +43,7 @@ public class JenaRdfExtractorTest extends TestCase {
 		tri.close();
 	}
 	
-	public void testLoadRdfTurle() throws Exception {
+	public void testLoadRdfTurle() throws IOException {
 		SparkTricalysia tri = 
 				TricalysiaTestUtils.setupTestStore(SparkTricalysia.class);
 		tri.clear();
@@ -63,7 +64,7 @@ public class JenaRdfExtractorTest extends TestCase {
 		tri.close();
 	}
 	
-	public void testLoadRdfN3Spark() throws Exception {
+	public void testLoadRdfN3Spark() throws IOException {
 		SparkTricalysia tri = 
 				TricalysiaTestUtils.setupTestStore(SparkTricalysia.class);
 		tri.clear();
@@ -88,7 +89,7 @@ public class JenaRdfExtractorTest extends TestCase {
 		tri.close();
 	}
 	
-	public void testLoadRdfNt() throws Exception {
+	public void testLoadRdfNt() throws IOException {
 		Tricalysia tri = 
 				TricalysiaTestUtils.setupTestStore(GremlinTricalysia.class);
 		tri.clear();
