@@ -93,7 +93,6 @@ public class SparkTricalysia extends AbstractTricalysia {
 		}
 		setAutocommitInterval(1);
 		sparkContext = sc;
-		filePath = fPath;
 		if(hConf == null) {
 			hConf = new Configuration();
 		}
@@ -111,12 +110,15 @@ public class SparkTricalysia extends AbstractTricalysia {
 				"spark.hadoop.outputCommitCoordination.enabled", 
 				false
 		);
+		initHdfsSession(fPath);
 	}
 	
-	public void setFilePath(String fPath) {
-		filePath = fPath;
+	public void setFilePath(String fPath) throws IOException, URISyntaxException {
+		if(hdfs != null) {
+			close();
+		}
+		initHdfsSession(fPath);
 	}
-	
 
 	/** 
 	 * Preparing the HDFS file system with the specified configuration and 
@@ -126,12 +128,13 @@ public class SparkTricalysia extends AbstractTricalysia {
 	 * @throws URISyntaxException
 	 * If the URI is malformed.
 	 */
-	protected void initHdfsSession() throws IOException, URISyntaxException {
+	protected void initHdfsSession(String fPath) throws IOException, URISyntaxException {
+		filePath = fPath;
 		if(hdfs == null) {
 			hdfs = FileSystem.get(new URI(filePath), hadoopConf);
 			isAppendable = 
 					Boolean.valueOf(hdfs.getConf().get("dfs.support.append"));
-		}		
+		}
 		Path p = new Path(filePath);
 		if(!hdfs.exists(p)) {
 			hdfs.createNewFile(p);
@@ -163,15 +166,20 @@ public class SparkTricalysia extends AbstractTricalysia {
 	}
 
 	@Override
-	public <S, P, O> void write(S subject, P property, O object) 
+	public synchronized <S, P, O> void write(S subject, P property, O object) 
 			throws IOException {
 		String s = toObjectString(subject);
 		String p = toObjectString(property);
 		String o = toObjectString(object);
-		try {
 			startAbstractTransaction();
 			Path path = new Path(filePath);
 			try {
+				if(hdfs == null) {
+					throw new IllegalStateException(
+							"Malformed URI (" + filePath 
+							+ "), triple store not available"
+					);
+				}
 				if(hdfs.exists(path)) {
 					StringBuffer sb = new StringBuffer();
 					sb.append(s);
@@ -204,15 +212,9 @@ public class SparkTricalysia extends AbstractTricalysia {
 					System.exit(-1);
 				}
 			} catch(IOException e) {
-				initHdfsSession();
+				// initHdfsSession();
 				throw e;
 			}
-		} catch(URISyntaxException e) {
-			throw new IllegalStateException(
-					"Malformed URI (" + filePath 
-					+ "), triple store not available"
-			);
-		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -248,65 +250,59 @@ public class SparkTricalysia extends AbstractTricalysia {
 				rddLines.filter(filter);
 		List<String> triplesLines = subjectLines.collect();
 		for(String tripleLine : triplesLines) {
-			// try {
-				// String[] triple = parser.parseLine(tripleLine);
-				String[] triple = TripleFilter.parseRfc4180Line(tripleLine);
-				if(triple.length != 3) {
-					logger.warning("Illegal triple: " + String.join(",", triple));
+			String[] triple = TripleFilter.parseRfc4180Line(tripleLine);
+			if(triple.length != 3) {
+				logger.warning("Illegal triple: " + String.join(",", triple));
+			}
+			else {
+				String a = triple[0];
+				String b = triple[1];
+				String c = triple[2];
+				List<O> objects = null;
+				O o = null;
+				P key = null;
+				if(s.equals(a)) {
+					key = (P)b;
+					objects = properties.get(key);
+					if(objects == null) {
+						objects = new ArrayList<O>();
+					}
+					o = (O)c;
 				}
-				else {
-					String a = triple[0];
-					String b = triple[1];
-					String c = triple[2];
-					List<O> objects = null;
-					O o = null;
-					P key = null;
-					if(s.equals(a)) {
-						key = (P)b;
-						objects = properties.get(key);
-						if(objects == null) {
-							objects = new ArrayList<O>();
-						}
-						o = (O)c;
+				else if(s.equals(b)) {
+					key = (P)a;
+					objects = properties.get(key);
+					if(objects == null) {
+						objects = new ArrayList<O>();
 					}
-					else if(s.equals(b)) {
-						key = (P)a;
-						objects = properties.get(key);
-						if(objects == null) {
-							objects = new ArrayList<O>();
-						}
-						o = (O)c;
-					}
-					else if(s.equals(c)) {
-						key = (P)a;
-						objects = properties.get(key);
-						if(objects == null) {
-							objects = new ArrayList<O>();
-						}
-						o = (O)b;
-					}
-					if(!objects.contains(o)) {
-						objects.add(o);
-					}
-					properties.put(key, objects);
+					o = (O)c;
 				}
-			/*	
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
+				else if(s.equals(c)) {
+					key = (P)a;
+					objects = properties.get(key);
+					if(objects == null) {
+						objects = new ArrayList<O>();
+					}
+					o = (O)b;
+				}
+				if(!objects.contains(o)) {
+					objects.add(o);
+				}
+				properties.put(key, objects);
+			}
 		}
 		return properties;
 	}
 
 	@Override
 	public void clear() throws IOException {
-		try {
-			try {
+		if(hdfs == null) {
+			throw new IllegalStateException(
+					"Malformed URI (" + filePath 
+					+ "), triple store not available"
+			);
+		}
 				Path p = new Path(filePath);
-				if(hdfs == null) {
-					initHdfsSession();
-				}
 				if(hdfs.exists(p)) {
 					oStream.close();
 					oStream = null;
@@ -319,33 +315,20 @@ public class SparkTricalysia extends AbstractTricalysia {
 						oStream = hdfs.create(p);
 					}
 				}
-			} catch(IOException e) {
-				initHdfsSession();
-				throw e;
-			}
-		} catch (URISyntaxException e) {
-			throw new IllegalStateException(
-					"Malformed URI (" + filePath 
-					+ "), triple store not available"
-			);
-		}
 		
 	}
 
 	@Override
-	public void startTransaction() {
-		try {
-			initHdfsSession();
-		} catch (IOException | URISyntaxException e) {
-			throw new IllegalStateException(e);
-		}
+	public synchronized void startTransaction() {
+		// TODO how ???
 	}
 
 	@Override
-	public void commitTransaction() {
+	public synchronized void commitTransaction() {
 		try {
 			if(!isAppendable) {
 				if(oStream != null) {
+					oStream.hflush();
 					oStream.close();
 				}
 				if(hdfs != null) {
@@ -353,7 +336,7 @@ public class SparkTricalysia extends AbstractTricalysia {
 				}
 			}
 			else {
-				logger.fine("TRANSACTION ->" + currentInterval);
+				logger.info("TRANSACTION ->" + currentInterval);
 				oStream.hflush();
 			}
 		} catch (IOException e) {
@@ -363,6 +346,7 @@ public class SparkTricalysia extends AbstractTricalysia {
 	
 	@Override
 	public void close() throws IOException {
+		
 		commitTransaction();
 		// Path p = new Path(filePath);
 		if(oStream != null) {
