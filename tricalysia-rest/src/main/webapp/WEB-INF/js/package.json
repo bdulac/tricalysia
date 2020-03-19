@@ -1,0 +1,22 @@
+{
+  "name": "tricalysia",
+  "version": "1.0.0",
+  "description": "A set of (testing) interfaces for reading and writing triples in a store.",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bdulac/tricalysia.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bdulac/tricalysia/issues"
+  },
+  "homepage": "https://github.com/bdulac/tricalysia#readme"
+}
